@@ -1,4 +1,4 @@
-module github.com/matt-simons/trackedclient
+module github.com/tkube/trackedclient
 
 go 1.17
 
