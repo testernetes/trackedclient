@@ -78,6 +78,11 @@ func (c *trackedClient) DeleteAllTracked(ctx context.Context, opts ...client.Del
 	var errs []error
 	for i := range c.tracker {
 		obj := &c.tracker[i]
+		uid := obj.GetUID()
+		preconditions := client.Preconditions{
+			UID: &uid,
+		}
+		opts = append(opts, preconditions)
 		err := c.Client.Delete(ctx, obj, opts...)
 		if err != nil {
 			errs = append(errs, err)
