@@ -1,4 +1,4 @@
-module github.com/tkube/trackedclient
+module github.com/testernetes/trackedclient
 
 go 1.17
 
