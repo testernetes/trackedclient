@@ -13,14 +13,14 @@ import (
 )
 
 type TrackedClient interface {
-	client.Client
+	client.WithWatch
 	DeleteAllTracked(context.Context, ...client.DeleteOption) error
 }
 
 // client is a client.Client that reads and writes directly from/to an API server.  It lazily initializes
 // new clients at the time they are used, and caches the client.
 type trackedClient struct {
-	client.Client
+	client.WithWatch
 	tracker []unstructured.Unstructured
 	lock    *sync.Mutex
 }
@@ -31,13 +31,13 @@ func New(config *rest.Config, options client.Options) (TrackedClient, error) {
 }
 
 func newTrackedClient(config *rest.Config, options client.Options) (*trackedClient, error) {
-	c, err := client.New(config, options)
+	c, err := client.NewWithWatch(config, options)
 	if err != nil {
 		return nil, err
 	}
 	tc := &trackedClient{
-		Client: c,
-		lock:   &sync.Mutex{},
+		WithWatch: c,
+		lock:      &sync.Mutex{},
 	}
 	return tc, nil
 }
@@ -46,7 +46,7 @@ var _ client.Client = &trackedClient{}
 
 // Create implements client.Client
 func (c *trackedClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
-	err := c.Client.Create(ctx, obj, opts...)
+	err := c.WithWatch.Create(ctx, obj, opts...)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (c *trackedClient) DeleteAllTracked(ctx context.Context, opts ...client.Del
 			UID: &uid,
 		}
 		opts = append(opts, preconditions)
-		err := c.Client.Delete(ctx, obj, opts...)
+		err := c.WithWatch.Delete(ctx, obj, opts...)
 		if err != nil {
 			errs = append(errs, err)
 		}
